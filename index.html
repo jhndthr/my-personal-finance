@@ -1,0 +1,354 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Personal Finance</title>
+
+<!-- CSS -->
+<link rel="stylesheet" href="style.css">
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+<main>
+
+<!-- LOGIN -->
+<section id="login" class="card">
+  <h1>John Diether's Finance Own Tracker</h1>
+  <p class="muted">Sign in to your expense tracker</p>
+
+  <label>Email</label>
+  <input id="email" type="email" placeholder="Your email">
+
+  <label>Password</label>
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="login()">Sign In</button>
+  <button class="secondary" onclick="signup()">Create Account</button>
+
+  <p id="loginMessage" class="muted"></p>
+</section>
+
+<!-- MAIN APP -->
+<section id="app">
+
+<header>
+  <div>
+    <h1>John Diether's Finance Own Tracker</h1>
+    <p class="muted">Personal Expense Tracker</p>
+  </div>
+
+  <button class="secondary no-print" onclick="logout()">
+    Sign Out
+  </button>
+</header>
+
+<!-- MAIN GRID -->
+<div class="grid">
+
+  <!-- CURRENT BUDGET -->
+  <div class="card">
+    <div class="muted">Current Budget</div>
+    <div id="budgetBalance" class="balance green">₱0.00</div>
+
+    <label for="currentBalanceInput">Set Current Balance (₱)</label>
+    <input
+      id="currentBalanceInput"
+      type="number"
+      step="0.01"
+      placeholder="Enter current balance"
+    >
+
+    <button
+      class="no-print update-balance-btn"
+      onclick="updateCurrentBalance()">
+      Update Current Balance
+    </button>
+  </div>
+
+  <!-- SAVINGS -->
+  <div class="card">
+    <div class="muted">Savings Balance</div>
+    <div id="savingsBalance" class="balance">₱0.00</div>
+  </div>
+
+  <!-- MONEY IN -->
+  <div class="card">
+    <div class="muted">Total Money In</div>
+    <div id="incomeTotal" class="balance green">₱0.00</div>
+  </div>
+
+  <!-- MONEY OUT -->
+  <div class="card">
+    <div class="muted">Total Money Out</div>
+    <div id="expenseTotal" class="balance red">₱0.00</div>
+  </div>
+
+  <!-- FINANCE ANALYTICS -->
+  <section class="analytics-section">
+
+    <div class="analytics-heading">
+      <h2>Finance Analytics</h2>
+      <p class="muted">Track your financial performance and spending habits.</p>
+    </div>
+
+    <!-- MONTHLY INCOME VS EXPENSES -->
+    <div class="card chart-card">
+      <h2>Monthly Income vs Expenses</h2>
+      <p class="muted">Your money in and money out over the last 6 months.</p>
+
+      <div class="chart-container">
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+
+    <!-- EXPENSE BREAKDOWN -->
+    <div class="card chart-card">
+      <h2>Expense Breakdown</h2>
+      <p class="muted">Where your money goes.</p>
+
+      <div class="chart-container">
+        <canvas id="expenseChart"></canvas>
+      </div>
+    </div>
+
+    <!-- BALANCE TREND -->
+    <div class="card chart-card">
+      <h2>Balance Trend</h2>
+      <p class="muted">Track your budget and savings over time.</p>
+
+      <div class="chart-container">
+        <canvas id="balanceChart"></canvas>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+<!-- END MAIN GRID -->
+
+<!-- QUICK ACTIONS -->
+<div class="card no-print">
+  <h2>Quick Actions</h2>
+
+  <div class="actions">
+    <button onclick="openForm('income')">+ Money In</button>
+    <button onclick="openForm('expense')">− Money Out</button>
+    <button class="secondary" onclick="settings()">Starting Balance</button>
+  </div>
+</div>
+
+<!-- TRANSACTION FORM -->
+<div class="card no-print" id="entryCard">
+  <h2 id="formTitle">New Transaction</h2>
+
+  <div class="formgrid">
+    <div>
+      <label>Transaction Type</label>
+      <select id="type">
+        <option value="income">Money In</option>
+        <option value="expense">Money Out</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Amount (₱)</label>
+      <input id="amount" type="number" min="0.01" step="0.01">
+    </div>
+
+    <div>
+      <label>Description</label>
+      <input id="description" placeholder="e.g. Salary, Groceries">
+    </div>
+
+    <div>
+      <label>Date</label>
+      <input id="date" type="date">
+    </div>
+
+    <div>
+      <label id="accountLabel">Where will the money go?</label>
+      <select id="account">
+        <option value="budget">Current Budget</option>
+        <option value="savings">Savings</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Category</label>
+      <select id="category">
+        <option>Salary</option>
+        <option>Food</option>
+        <option>Groceries</option>
+        <option>Rent</option>
+        <option>Utilities</option>
+        <option>Transportation</option>
+        <option>Loan</option>
+        <option>Shopping</option>
+        <option>Health</option>
+        <option>Entertainment</option>
+        <option>Education</option>
+        <option>Other</option>
+      </select>
+    </div>
+  </div>
+
+  <label>Notes (optional)</label>
+  <input id="notes" placeholder="Additional details">
+
+  <div class="actions form-actions">
+    <button onclick="saveTransaction()">Save Transaction</button>
+    <button class="secondary" onclick="closeForm()">Cancel</button>
+  </div>
+</div>
+
+<!-- TRANSACTION HISTORY -->
+<div class="card transaction-card">
+
+  <div class="actions history-header no-print">
+    <h2>Transaction History</h2>
+
+    <div class="actions">
+      <button class="secondary" onclick="print()">Print Report</button>
+      <button onclick="downloadPDF()">Download PDF</button>
+    </div>
+  </div>
+
+  <!-- PERIOD FILTER -->
+  <div class="formgrid no-print">
+    <div>
+      <label>Filter Period</label>
+      <select id="period" onchange="render()">
+        <option value="day">Daily</option>
+        <option value="week">Weekly</option>
+        <option value="month" selected>Monthly</option>
+        <option value="year">Yearly</option>
+        <option value="all">All Records</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- CUSTOM DATE RANGE -->
+  <div class="filter-section no-print">
+    <div class="filter-title">Custom Date Range</div>
+
+    <div class="formgrid">
+      <div>
+        <label for="fromDate">From Date</label>
+        <input type="date" id="fromDate">
+      </div>
+
+      <div>
+        <label for="toDate">To Date</label>
+        <input type="date" id="toDate">
+      </div>
+    </div>
+
+    <div class="filter-buttons">
+      <button onclick="applyCustomDateRange()">Apply Filter</button>
+      <button class="secondary" onclick="clearCustomDateRange()">Clear</button>
+    </div>
+
+    <p class="muted filter-help">
+      Select a starting date and ending date to view transactions within that range.
+    </p>
+  </div>
+
+  <!-- REPORT SUMMARY -->
+  <p id="reportSummary" class="muted"></p>
+
+  <!-- TABLE -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Account</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th class="no-print">Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="records"></tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="pagination no-print">
+    <span id="pageInfo" class="muted">
+      Page 1 of 1 · 0 transactions
+    </span>
+
+    <div class="pagination-buttons">
+      <button
+        class="secondary"
+        id="prevPage"
+        onclick="changePage(-1)"
+        disabled>
+        Previous
+      </button>
+
+      <button
+        class="secondary"
+        id="nextPage"
+        onclick="changePage(1)"
+        disabled>
+        Next
+      </button>
+    </div>
+  </div>
+
+</div>
+
+</section>
+</main>
+
+<!-- PDF LIBRARIES -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- MAIN JAVASCRIPT -->
+<script src="app.js"></script>
+
+<!-- CUSTOM DATE FILTER -->
+<script>
+function applyCustomDateRange() {
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value;
+
+  if (!from || !to) {
+    alert("Please select both From Date and To Date.");
+    return;
+  }
+
+  if (from > to) {
+    alert("From Date cannot be later than To Date.");
+    return;
+  }
+
+  currentPage = 1;
+  document.getElementById("period").value = "all";
+  render();
+}
+
+function clearCustomDateRange() {
+  document.getElementById("fromDate").value = "";
+  document.getElementById("toDate").value = "";
+
+  currentPage = 1;
+  render();
+}
+</script>
+
+</body>
+</html>
